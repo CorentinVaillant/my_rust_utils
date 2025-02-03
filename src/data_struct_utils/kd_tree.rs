@@ -15,7 +15,7 @@ impl<const K: usize, POINT> KdTree<K,POINT> {
         //Selection of the midle point
         //todo
 
-        
+        todo!()        
 
     }
 
@@ -32,7 +32,7 @@ impl<const K: usize, POINT> KdTree<K,POINT> {
 }
 
 impl<const K: usize, POINT> KdTreeNode<K,POINT> {
-    todo!()
+    //TODO
 }
 
 pub trait KdTreePoint<const K: usize>{
