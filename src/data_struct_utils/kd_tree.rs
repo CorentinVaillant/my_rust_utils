@@ -1,4 +1,4 @@
-use core::f32;
+use core::f64;
 use std::rc::Rc;
 
 use super::kd_tree_traits::KdTreePoint;
@@ -11,7 +11,7 @@ struct Node<const DIM: usize> {
 
 #[derive(Debug, Clone,Copy)]
 pub(crate)struct Point<const DIM: usize> {
-    pub(crate) position: [f32; DIM],
+    pub(crate) position: [f64; DIM],
     index:usize
 }
 
@@ -33,7 +33,7 @@ impl<const DIM: usize, POINT:KdTreePoint<DIM>> From<Vec<POINT>> for KdTree<DIM,P
 }
 
 impl<const DIM: usize> Point<DIM> {
-    fn squared_distance(&self, other: &[f32;DIM]) -> f32 {
+    fn squared_distance(&self, other: &[f64;DIM]) -> f64 {
         self.position
             .iter()
             .zip(other.iter())
@@ -44,7 +44,7 @@ impl<const DIM: usize> Point<DIM> {
 impl<const DIM: usize> Node<DIM> {
     fn nearest<'a>(
         &'a self,
-        target: &[f32;DIM],
+        target: &[f64;DIM],
         depth: usize,
         best: Option<&'a Node<DIM>>,
     ) -> Option<&'a Self> {
@@ -77,7 +77,7 @@ impl<const DIM: usize> Node<DIM> {
         let candidate = next.and_then(|n| n.nearest(target, depth + 1, Some(best)));
         let best = candidate.unwrap_or(best);
 
-        if f32::abs(target[axis] - self.point.position[axis])
+        if f64::abs(target[axis] - self.point.position[axis])
             < best
                 .point.squared_distance(&target)
         {
@@ -112,7 +112,7 @@ impl<const DIM: usize> Node<DIM> {
 
 impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
 
-    pub fn nearest_by_coord(&self, coord :&[f32;DIM]) ->Option<&POINT>{
+    pub fn nearest_by_coord(&self, coord :&[f64;DIM]) ->Option<&POINT>{
         let index = self.base_node.as_ref().and_then(|n|
             n.nearest(coord, 0, None)
             .map(|b|b.point.index))?;
