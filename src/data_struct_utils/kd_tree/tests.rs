@@ -23,7 +23,7 @@ pub(crate) mod kdtree_tests {
     fn test_nearest_by_coord() {
         let points = vec![
             [1.0, 2.0],
-            [3.0, 4.0],
+            [4.0, 4.0],
             [5.0, 6.0],
             [7.0, 8.0],
         ];
@@ -42,12 +42,14 @@ pub(crate) mod kdtree_tests {
     fn test_nearest() {
         let points = vec![
             [1.0, 2.0],
-            [3.0, 4.0],
+            [4.0, 4.0],
             [5.0, 6.0],
             [7.0, 8.0],
         ];
 
         let kdtree = KdTree::<2, [f64; 2]>::from(points.clone());
+        assert!(!kdtree.is_empty());
+        println!("KD-Tree Root: {:#?}", kdtree.base_node);
 
         // Test nearest neighbor search by another point
         let target = [2.0, 3.0];

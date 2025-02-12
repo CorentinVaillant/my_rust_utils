@@ -9,6 +9,7 @@ use std::rc::Rc;
 pub use kd_tree_traits::KdTreePoint;
 
 ///Node for the KdTree
+#[derive(Debug,Clone)]
 struct Node<const DIM: usize> {
     point: Point<DIM>,
     left: Option<Rc<Self>>,
@@ -24,6 +25,7 @@ pub(crate)struct Point<const DIM: usize> {
 
 ///A Kdtree
 /// A tree that partionate a K dimensional space
+#[derive(Debug,Clone)]
 pub struct KdTree<const DIM: usize,POINT: KdTreePoint<DIM>> {
     base_node: Option<Rc<Node<DIM>>>,
 
@@ -59,15 +61,11 @@ impl<const DIM: usize> Node<DIM> {
     ) -> Option<&'a Self> {
         let point = &self.point;
 
-        let best = if let Some(best) = best {
-            if point.squared_distance(&target) < best.point.squared_distance(&target) {
-                self
-            } else {
-                best
-            }
-        } else {
-            self
+        let best = match best {
+            Some(best) if best.point.squared_distance(target) <= point.squared_distance(target) => best,
+            _ => self,
         };
+    
 
         let axis = depth % DIM;
 
@@ -86,12 +84,12 @@ impl<const DIM: usize> Node<DIM> {
         let candidate = next.and_then(|n| n.nearest(target, depth + 1, Some(best)));
         let best = candidate.unwrap_or(best);
 
-        if f64::abs(target[axis] - self.point.position[axis])
-            < best
-                .point.squared_distance(&target)
+        if (target[axis] - self.point.position[axis]).powi(2) < best.point.squared_distance(&target)
+
         {
             return opposite_branch
-                .and_then(|n| n.nearest(target, depth + 1, Some(best)));
+              .and_then(|n| n.nearest(target, depth + 1, Some(best)))
+              .or(Some(best));
 
         }
         Some(best)
@@ -134,6 +132,7 @@ impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
     ///Return a ref to the nearest POINT by using another POINT
     pub fn nearest(&self,target:&POINT)->Option<&POINT>{
         let target = &target.as_kdtree_point();
+
 
         let index = self.base_node.as_ref().and_then(|n|
             n.nearest(target, 0, None)
