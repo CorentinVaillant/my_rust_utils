@@ -49,7 +49,7 @@ pub(crate) mod kdtree_tests {
 
         let kdtree = KdTree::<2, [f64; 2]>::from(points.clone());
         assert!(!kdtree.is_empty());
-        println!("KD-Tree Root: {:#?}", kdtree.base_node);
+        println!("KD-Tree Root: {:#?}", kdtree.root);
 
         // Test nearest neighbor search by another point
         let target = [2.0, 3.0];
