@@ -11,7 +11,6 @@ pub mod kd_tree_traits;
 #[cfg(test)]
 pub mod tests;
 
-use std::rc::Rc;
 
 pub use kd_tree_traits::KdTreePoint;
 
@@ -19,8 +18,8 @@ pub use kd_tree_traits::KdTreePoint;
 #[derive(Debug,Clone)]
 struct Node<const DIM: usize> {
     point: Point<DIM>,      // the stored point in this node
-    left: Option<Rc<Self>>, // left child
-    right: Option<Rc<Self>>,// right child
+    left: Option<Box<Self>>, // left child
+    right: Option<Box<Self>>,// right child
 }
 
 ///Structure that represent a k-dimensional point
@@ -42,7 +41,7 @@ pub(crate)struct Point<const DIM: usize> {
 
 #[derive(Debug,Clone)]
 pub struct KdTree<const DIM: usize,POINT: KdTreePoint<DIM>> {
-    root: Option<Rc<Node<DIM>>>, //Root node of the Kd-Tree
+    root: Option<Box<Node<DIM>>>, //Root node of the Kd-Tree
 
     points : Vec<POINT>
 }
@@ -76,7 +75,7 @@ impl<const DIM: usize> Point<DIM> {
     }
 }
 
-impl<const DIM: usize> Node<DIM> {
+impl<'a,const DIM: usize> Node<DIM> {
     /// Recursively finds the nearest neighbor to the target point.
     ///
     /// # Parameters:
@@ -86,7 +85,7 @@ impl<const DIM: usize> Node<DIM> {
     ///
     /// # Returns:
     /// - An `Option` containing a reference to the nearest node.
-    fn nearest<'a>(
+    fn nearest(
         &'a self,
         target: &[f64;DIM],
         depth: usize,
@@ -94,11 +93,12 @@ impl<const DIM: usize> Node<DIM> {
     ) -> Option<&'a Self> {
         let point = &self.point;
 
+
+        let self_distance = point.squared_distance(target);
+        let best_distance = best.map_or(f64::INFINITY, |b| b.point.squared_distance(target));
+
         // Update the best node if this node is closer
-        let best = match best {
-            Some(best) if best.point.squared_distance(target) <= point.squared_distance(target) => best,
-            _ => self,
-        };
+        let best = if self_distance < best_distance { self } else { best.unwrap_or(self) };
     
 
         let axis = depth % DIM;// Determine the splitting axis
@@ -139,7 +139,7 @@ impl<const DIM: usize> Node<DIM> {
     ///
     /// # Returns:
     /// - An `Option<Rc<Node<DIM>>>` representing the root of the constructed subtree.
-    fn construct_kdtree<POINT:KdTreePoint<DIM>>(values:&Vec<POINT>,indices: &mut [usize], depth: usize) -> Option<Rc<Self>> {
+    fn construct_kdtree<POINT:KdTreePoint<DIM>>(values:&[POINT],indices: &mut [usize], depth: usize) -> Option<Box<Self>> {
         if indices.is_empty() {
             return None;
         }
@@ -159,23 +159,31 @@ impl<const DIM: usize> Node<DIM> {
             index:*index
         };
 
-        Some(Rc::new(Self { point, left, right }))
+        Some(Box::new(Self { point, left, right }))
     }
 
-//     fn add_node(&mut self,new_node:Self,depth: usize){
-//         let axis = depth % DIM;
+    fn add_node(&mut self,new_node:Self,depth: usize){
+        let axis = depth % DIM;
         
-//         if self.point.position[axis] < new_node.point.position[axis]{
-//             if let Some(right) = &mut self.right{
-//                 right.add_node(new_node, depth+1);
-//                 return;
-//             }else {
-//                 self.right = Some(Rc::new(new_node));
-//                 return;
-//             }
-//         }
-//     }
-// }
+        if self.point.position[axis] < new_node.point.position[axis]{
+            if let Some(right) = &mut self.right{
+                right.add_node(new_node, depth+1);
+                
+            }else {
+                self.right = Some(Box::new(new_node));
+                
+            }
+        }else{
+            if let Some(left) = &mut self.left{
+                left.add_node(new_node, depth+1);
+                
+            }else {
+                self.left = Some(Box::new(new_node));
+                
+            }
+        }
+    }
+}
 
 impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
 
@@ -200,6 +208,24 @@ impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
 
         Some(&self.points[index])
         
+    }
+
+    pub fn add_point(&mut self, point: POINT) {
+        let position = *point.as_kdtree_point();
+        let index = self.points.len();
+        self.points.push(point);
+    
+        let new_node = Node {
+            point: Point { position, index },
+            left: None,
+            right: None,
+        };
+    
+        if let Some(root) = &mut self.root {
+            root.add_node(new_node, 0);
+        } else {
+            self.root = Some(Box::new(new_node));
+        }
     }
 
     pub fn is_empty(&self)->bool{
