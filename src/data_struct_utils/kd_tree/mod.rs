@@ -11,7 +11,6 @@ pub mod kd_tree_traits;
 #[cfg(test)]
 pub mod tests;
 
-use core::f64;
 use std::rc::Rc;
 
 pub use kd_tree_traits::KdTreePoint;
@@ -51,6 +50,13 @@ pub struct KdTree<const DIM: usize,POINT: KdTreePoint<DIM>> {
 impl<const DIM: usize, POINT:KdTreePoint<DIM>> From<Vec<POINT>> for KdTree<DIM,POINT> {
     /// Constructs a Kd-Tree from a vector of points.
     fn from(value: Vec<POINT>) -> Self {
+        if DIM == 0{
+            return Self{
+                root : None,
+                points : value,
+            };
+        }
+
         let mut indices = (0..value.len()).collect::<Vec<_>>();       
 
         Self {
@@ -137,7 +143,7 @@ impl<const DIM: usize> Node<DIM> {
         if indices.is_empty() {
             return None;
         }
-        let axis = depth % DIM;
+        let axis = depth % DIM; //DIM != 0 because the condition is verify into the from function
 
         // Find the median index
         let median = indices.len() / 2;

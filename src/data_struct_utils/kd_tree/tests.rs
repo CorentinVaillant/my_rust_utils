@@ -86,7 +86,7 @@ pub(crate) mod kdtree_tests {
     fn test_large_tree() {
         let points = (0..100).map(|i| [i as f64, i as f64]).collect::<Vec<_>>();
 
-        let kdtree = KdTree::<2, [f64; 2]>::from(points.clone());
+        let kdtree = KdTree::from(points.clone());
 
         // Test nearest neighbor search on a larger tree
         let nearest = kdtree.nearest_by_coord(&[50.5, 50.5]).unwrap();
@@ -94,5 +94,15 @@ pub(crate) mod kdtree_tests {
 
         let nearest = kdtree.nearest_by_coord(&[99.9, 99.9]).unwrap();
         assert_eq!(nearest, &[99.0, 99.0]);
+    }
+
+    #[test]
+    fn test_zero_dim_tree(){
+        let points: Vec<[f64; 0]> = (0..100).map(|_i|[]).collect::<Vec<_>>();
+
+        let kdtree = KdTree::from(points);
+
+        let nearest = kdtree.nearest_by_coord(&[]);
+        assert!(nearest.is_none());
     }
 }
