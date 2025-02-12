@@ -161,7 +161,21 @@ impl<const DIM: usize> Node<DIM> {
 
         Some(Rc::new(Self { point, left, right }))
     }
-}
+
+//     fn add_node(&mut self,new_node:Self,depth: usize){
+//         let axis = depth % DIM;
+        
+//         if self.point.position[axis] < new_node.point.position[axis]{
+//             if let Some(right) = &mut self.right{
+//                 right.add_node(new_node, depth+1);
+//                 return;
+//             }else {
+//                 self.right = Some(Rc::new(new_node));
+//                 return;
+//             }
+//         }
+//     }
+// }
 
 impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
 
