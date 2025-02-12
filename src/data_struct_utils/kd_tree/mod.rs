@@ -1,20 +1,29 @@
+pub mod kd_tree_traits;
+
+#[cfg(test)]
+pub mod tests;
+
 use core::f64;
 use std::rc::Rc;
 
-use super::kd_tree_traits::KdTreePoint;
+pub use kd_tree_traits::KdTreePoint;
 
+///Node for the KdTree
 struct Node<const DIM: usize> {
     point: Point<DIM>,
     left: Option<Rc<Self>>,
     right: Option<Rc<Self>>,
 }
 
+///Structure that represent a point for a KdTree
 #[derive(Debug, Clone,Copy)]
 pub(crate)struct Point<const DIM: usize> {
     pub(crate) position: [f64; DIM],
     index:usize
 }
 
+///A Kdtree
+/// A tree that partionate a K dimensional space
 pub struct KdTree<const DIM: usize,POINT: KdTreePoint<DIM>> {
     base_node: Option<Rc<Node<DIM>>>,
 
@@ -112,6 +121,7 @@ impl<const DIM: usize> Node<DIM> {
 
 impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
 
+    ///Return a ref to the nearest POINT by using some coordinates
     pub fn nearest_by_coord(&self, coord :&[f64;DIM]) ->Option<&POINT>{
         let index = self.base_node.as_ref().and_then(|n|
             n.nearest(coord, 0, None)
@@ -121,8 +131,8 @@ impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
         
     }
 
+    ///Return a ref to the nearest POINT by using another POINT
     pub fn nearest(&self,target:&POINT)->Option<&POINT>{
-
         let target = &target.as_kdtree_point();
 
         let index = self.base_node.as_ref().and_then(|n|
@@ -131,5 +141,9 @@ impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
 
         Some(&self.points[index])
         
+    }
+
+    pub fn is_empty(&self)->bool{
+        self.base_node.is_none()
     }
 }
