@@ -183,6 +183,20 @@ impl<'a,const DIM: usize> Node<DIM> {
             }
         }
     }
+
+    fn is_leaf(&self)->bool{
+        self.left.is_none() && self.right.is_none()
+    }
+
+    fn height(&self,depth: usize)->usize{
+        if self.is_leaf(){
+            return depth+1;
+        }else {
+            return usize::max(
+                (self.right.as_ref()).map(|r|r.height(depth+1)).unwrap_or(0), 
+                (self.left.as_ref()).map(|r|r.height(depth+1)).unwrap_or(0));
+        }
+    }
 }
 
 impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
@@ -230,5 +244,15 @@ impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
 
     pub fn is_empty(&self)->bool{
         self.root.is_none()
+    }
+
+    pub fn size(&self)->usize{
+        self.points.len()
+    }
+
+    pub fn height(&self)->usize{
+        self.root.as_ref()
+           .map(|r|r.height(0))
+           .unwrap_or(0)
     }
 }
