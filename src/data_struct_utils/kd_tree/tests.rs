@@ -2,8 +2,6 @@
 pub(crate) mod kdtree_tests {
     use crate::data_struct_utils::kd_tree::*;
 
-
-
     #[test]
     fn test_kdtree_construction() {
         let points = vec![
@@ -104,5 +102,40 @@ pub(crate) mod kdtree_tests {
 
         let nearest = kdtree.nearest_by_coord(&[]);
         assert!(nearest.is_none());
+    }
+
+
+    #[test]
+    fn test_add(){
+        let points = vec![
+            [1.,1.],
+            [0.,0.],
+            [5.,5.]
+        ];
+
+        let mut kd_tree = KdTree::from(points);
+
+        let nearest = kd_tree.nearest(&[10.,10.]);
+        assert_eq!(nearest, Some(&[5.,5.]));
+
+        kd_tree.add_point([9.,5.]);
+
+        let nearest = kd_tree.nearest(&[10.,10.]);
+        assert_eq!(nearest, Some(&[9.,5.]));
+    }
+
+    #[test]
+    fn test_add_to_empty_tree(){
+        let points = vec![];
+
+        let mut kd_tree = KdTree::from(points);
+
+        let nearest = kd_tree.nearest(&[10.,10.]);
+        assert_eq!(nearest, None);
+
+        kd_tree.add_point([9.,5.]);
+
+        let nearest = kd_tree.nearest(&[10.,10.]);
+        assert_eq!(nearest, Some(&[9.,5.]));
     }
 }
