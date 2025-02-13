@@ -197,6 +197,8 @@ impl<'a,const DIM: usize> Node<DIM> {
                 (self.left.as_ref()).map(|r|r.height(depth+1)).unwrap_or(0));
         }
     }
+
+    //TODO, iterate over nodes (prefix, infix, postfix, breast)
 }
 
 impl<const DIM:usize,POINT:KdTreePoint<DIM>> KdTree<DIM,POINT>{
