@@ -7,6 +7,7 @@
 
 
 pub mod kd_tree_traits;
+pub mod kd_tree_iterators;
 
 #[cfg(test)]
 pub mod tests;
